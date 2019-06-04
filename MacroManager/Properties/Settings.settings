@@ -1,7 +1,12 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="uri:settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
-  <Settings />
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="MacroManager.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="GamePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn</Value>
+    </Setting>
+    <Setting Name="UserPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\Liam\Documents\My Games\FINAL FANTASY XIV - A Realm Reborn</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>
