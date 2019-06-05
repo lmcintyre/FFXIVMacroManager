@@ -6,10 +6,20 @@
         xmlns:local="clr-namespace:MacroManager"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <local:LinesEntryToTextConverter x:Key="LinesEntryToTextConverter"/>
+    </Window.Resources>
     <Grid>
-        <ComboBox x:Name="loadBox" HorizontalAlignment="Left" Margin="124,13,0,0" VerticalAlignment="Top" Width="170" SelectionChanged="LoadBox_SelectionChanged"/>
-        <Grid x:Name="macroGrid"  HorizontalAlignment="Left" Height="362" Margin="10,48,0,0" VerticalAlignment="Top" Width="488">
+        <Label Content="Load macros from:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="LoadBox" HorizontalAlignment="Left" Margin="124,13,0,0" VerticalAlignment="Top" Width="170" SelectionChanged="LoadBox_SelectionChanged"
+                  ItemsSource="{Binding Path=Macros}"
+                  DisplayMemberPath="PrettyPath"
+                  SelectedValuePath="."
+                  SelectedValue="{Binding Path=CurrentMacroFile}"/>
+        <Grid x:Name="MacroGrid"  HorizontalAlignment="Left" Height="362" Margin="10,48,0,0" VerticalAlignment="Top" Width="488">
+            <!-- DataContext="CurrentMacroFile"> -->
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -30,13 +40,21 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
         </Grid>
-        <TextBox HorizontalAlignment="Left" Height="23" Margin="568,14,0,0" TextWrapping="Wrap" Text="Placeholder Title" VerticalAlignment="Top" Width="216"/>
-        <TextBox HorizontalAlignment="Left" Height="362" Margin="503,48,0,0" TextWrapping="Wrap" Text="Placeholder Macro" VerticalAlignment="Top" Width="281"/>
-        <Label Content="Load macros from:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="326,14,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-
-
+        <TextBox x:Name="SelMacroTitle"
+                 HorizontalAlignment="Left" Margin="540,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top"
+                 Height="23"
+                 Width="244"
+                 MaxLength="20"
+                 Text="{Binding Path=SelectedMacro.Title.Data}"/>
+        <TextBox x:Name="SelMacroText" HorizontalAlignment="Left" Margin="503,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top"
+                 Height="362"
+                 Width="281"
+                 MaxLines="15"
+                 Text="{Binding Path=SelectedMacro.Lines, Converter={StaticResource LinesEntryToTextConverter}}"/>
+        <Image x:Name="SelMacroIcon" HorizontalAlignment="Left" Height="32" Margin="503,10,0,0" VerticalAlignment="Top" Width="32"
+                 Source="{Binding Path=SelectedMacro.IconImage}" />
     </Grid>
 </Window>

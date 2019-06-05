@@ -1,10 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
+using MacroManager.Annotations;
+using SaintCoinach;
+using SaintCoinach.Ex;
+using SaintCoinach.Imaging;
+using ImageConverter = SaintCoinach.Imaging.ImageConverter;
 
 namespace MacroManager
 {
@@ -16,10 +24,10 @@ namespace MacroManager
         L
     };
     
-    struct MacroEntry
+    public struct MacroEntry
     {
         public EntryType Type;
-        public string Data;
+        public string Data { get; set; }
 
         public MacroEntry(EntryType type, string macroData)
         {
@@ -28,13 +36,14 @@ namespace MacroManager
         }
     }
 
-    struct Macro
+    public class Macro
     {
-        public MacroEntry Title;
-        public MacroEntry Icon;
-//        public Image IconImage; // for later :)
-        public MacroEntry Key;
-        public MacroEntry[] Lines;
+        public BitmapImage IconImage { get; set; }
+
+        public MacroEntry Title { get; set; }
+        public MacroEntry Icon { get; set; }
+        public MacroEntry Key { get; set; }
+        public MacroEntry[] Lines { get; set; }
 
         public Macro(MacroEntry title, MacroEntry icon, MacroEntry key, MacroEntry[] lines)
         {
@@ -45,14 +54,58 @@ namespace MacroManager
         }
     }
 
-    class MacroFile
+    public class MacroFile// : INotifyPropertyChanged
     {
+        private static Dictionary<String, BitmapImage> _iconImages = null;
+
         public string Path { get; set; }
         public string PrettyPath { get; set; }
         public List<Macro> Macros { get; set; }
 
+//        public event PropertyChangedEventHandler PropertyChanged;
+//
+//        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
+//        {
+//            add => throw new NotImplementedException();
+//            remove => throw new NotImplementedException();
+//        }
+
+        private void LoadIcons()
+        {
+            var realm = new ARealmReversed(Properties.Settings.Default.GamePath, Language.English);
+            var micons = realm.GameData.GetSheet("MacroIcon");
+            _iconImages = new Dictionary<string, BitmapImage>();
+
+            foreach (var row in micons)
+            {
+                string key = $"{(int)row.GetRaw(0):X7}";
+                if (key == "0000000")
+                    continue;
+                ImageFile imgFile = IconHelper.GetIcon(row.Sheet.Collection.PackCollection, SaintCoinach.Ex.Language.English, (int)row.GetRaw(0));
+                var tmp = ImageConverter.Convert(imgFile.GetData(), ImageFormat.A8R8G8B8_1, imgFile.Width, imgFile.Height);
+
+                using (var ms = new MemoryStream())
+                {
+                    tmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                    ms.Position = 0;
+
+                    var bi = new BitmapImage();
+                    bi.BeginInit();
+                    bi.CacheOption = BitmapCacheOption.OnLoad;
+                    bi.StreamSource = ms;
+                    bi.EndInit();
+
+                    if (!_iconImages.ContainsKey(key))
+                        _iconImages.Add(key, bi);
+                }
+            }
+        }
+
         public MacroFile(string path)
         {
+            if (_iconImages == null)
+                LoadIcons();
+
             Path = path;
             PrettyPath = path.EndsWith("MACROSYS.dat") ? "MACROSYS.dat" : "MACRO.DAT";
             //PrettyPath = path.Replace(Properties.Settings.Default.UserPath, "");
@@ -83,11 +136,11 @@ namespace MacroManager
 
         private Macro ReadMacro(byte[] data, ref int offset)
         {
-            MacroEntry t;
+            MacroEntry t = new MacroEntry();
             t.Type = EntryType.T;
-            MacroEntry i;
+            MacroEntry i = new MacroEntry();
             i.Type = EntryType.I;
-            MacroEntry k;
+            MacroEntry k = new MacroEntry();
             k.Type = EntryType.K;
             MacroEntry[] lines = new MacroEntry[15];
 
@@ -126,7 +179,11 @@ namespace MacroManager
                 offset += thisLineSize;
             }
 
-            return new Macro(t, i, k, lines);
+            Macro toReturn = new Macro(t, i, k, lines);
+            BitmapImage bi;
+            _iconImages.TryGetValue(i.Data, out bi);
+            toReturn.IconImage = bi;
+            return toReturn;
         }
 
         private void XorBytes(byte[] data, int offset = 0, int length = -1)
@@ -157,6 +214,6 @@ namespace MacroManager
         }
 
 
-
+        
     }
 }
